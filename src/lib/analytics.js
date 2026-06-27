@@ -84,6 +84,7 @@ export function computeAnalytics(parsed) {
   let runAuthor = null, runLen = 0
   const gaps = [] // silences between consecutive messages
   const allResponses = [] // every reply gap (seconds), for SLA aggregates
+  const respByMonth = new Map() // ym → reply gaps (seconds), for the SLA trend
 
   for (let i = 0; i < msgs.length; i++) {
     const m = msgs[i]
@@ -161,7 +162,12 @@ export function computeAnalytics(parsed) {
         const a = prev.author, b = m.author
         const key = a < b ? `${a}|${b}` : `${b}|${a}`
         pairCounts.set(key, (pairCounts.get(key) || 0) + 1)
-        if (gap < RESPONSE_CAP) { p.responseTimes.push(gap / 1000); allResponses.push(gap / 1000) }
+        if (gap < RESPONSE_CAP) {
+          const secs = gap / 1000
+          p.responseTimes.push(secs); allResponses.push(secs)
+          const bucket = respByMonth.get(ym) || []
+          bucket.push(secs); respByMonth.set(ym, bucket)
+        }
         runAuthor = m.author; runLen = 1
       } else {
         runLen++
@@ -224,6 +230,11 @@ export function computeAnalytics(parsed) {
     const c = sentSeries.get(ym)
     return { ym, date, value: c && c.tokens ? c.sum / c.tokens : 0 }
   })
+  // Monthly median reply time — the "are we getting slower?" SLA trend (Pro).
+  // null (not 0) for months with no replies, so the line shows a gap.
+  const responseSeries = monthlySeries.map(({ ym, date }) => ({
+    ym, date, value: respByMonth.has(ym) ? median(respByMonth.get(ym)) : null,
+  }))
 
   // ---- Streaks & silences --------------------------------------------------
   const activeDays = [...daily.keys()].sort()
@@ -263,6 +274,14 @@ export function computeAnalytics(parsed) {
   const stats = parsed.stats
   const days = stats.dayCount || dailySeries.length || 1
 
+  // Overall group mood: message-weighted mean of per-person sentiment.
+  const sentWeight = perPerson.reduce((s, p) => s + p.messages, 0) || 1
+  const overallSentiment = perPerson.reduce((s, p) => s + p.sentiment * p.messages, 0) / sentWeight
+  // Engagement month-over-month (latest full month vs the previous).
+  const lastM = monthlySeries[monthlySeries.length - 1]
+  const prevM = monthlySeries[monthlySeries.length - 2]
+  const engagementMoM = prevM && prevM.count ? ((lastM.count - prevM.count) / prevM.count) * 100 : 0
+
   return {
     stats,
     totals: {
@@ -277,6 +296,8 @@ export function computeAnalytics(parsed) {
       days,
       perDay: msgs.length / days,
       avgWords: msgs.length ? totalWords / msgs.length : 0,
+      sentiment: overallSentiment,
+      engagementMoM,
       first: stats.firstDate,
       last: stats.lastDate,
     },
@@ -287,6 +308,7 @@ export function computeAnalytics(parsed) {
     monthlySeries,
     dailySeries,
     sentimentSeries,
+    responseSeries,
     streak: { longest: longestStreak, current: currentStreak },
     longestSilences,
     graph: { nodes, links },

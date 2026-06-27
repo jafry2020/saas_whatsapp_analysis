@@ -121,14 +121,15 @@ export function ConversationFlow() {
 /* ----------------------------------------------------------- Quick facts */
 export function Highlights() {
   const { analytics } = useApp()
-  const { peaks, streak, longestSilences, totals } = analytics
-  const silence = longestSilences[0]
+  const { peaks, streak, longestSilences } = analytics
   const facts = [
     { icon: Flame, label: 'Longest streak', value: `${streak.longest} days`, sub: 'consecutive days chatting' },
+    { icon: Flame, label: 'Closing streak', value: `${streak.current} days`, sub: 'running at the last message' },
     { icon: Trophy, label: 'Busiest day', value: peaks.day ? fmtDate(new Date(peaks.day + 'T00:00:00')) : '—', sub: `${comma(peaks.dayCount)} messages` },
     { icon: MoonStar, label: 'Peak hour', value: fmtHour(peaks.hour), sub: `busiest on ${DOW[peaks.dow]}` },
-    { icon: Timer, label: 'Longest silence', value: silence ? duration(silence.seconds) : '—', sub: 'between two messages' },
-  ]
+    longestSilences[0] && { icon: Timer, label: 'Longest silence', value: duration(longestSilences[0].seconds), sub: 'between two messages' },
+    longestSilences[1] && { icon: Timer, label: '2nd-longest silence', value: duration(longestSilences[1].seconds), sub: 'the runner-up gap' },
+  ].filter(Boolean)
   return (
     <Card>
       <CardHeader icon={Sparkle} title="Highlights" subtitle="The records worth bragging about" />

@@ -18,8 +18,10 @@ export function Sentiment() {
 
   return (
     <Card>
-      <CardHeader icon={HeartPulse} title="Mood over time"
-        subtitle="On-device lexicon scoring — directional, not clinical" />
+      <CardHeader icon={HeartPulse}
+        title={pro ? 'Mood over time' : 'The group\'s vibe'}
+        subtitle={pro ? 'On-device lexicon scoring — directional, not clinical'
+          : 'Who\'s sunshine, who\'s the grump'} />
 
       <div className="h-56 -ml-2">
         <ResponsiveContainer width="100%" height="100%">

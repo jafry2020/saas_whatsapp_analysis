@@ -5,7 +5,8 @@ import { comma } from '../../lib/format.js'
 
 /** A frequency-sized word cloud (stop-words already removed upstream). */
 export function TopWords() {
-  const { analytics, focus } = useApp()
+  const { analytics, focus, mode } = useApp()
+  const pro = mode === 'pro'
   const words = focus
     ? (analytics.perPerson.find((p) => p.name === focus)?.topWords || [])
     : analytics.topWords
@@ -16,7 +17,9 @@ export function TopWords() {
 
   return (
     <Card>
-      <CardHeader icon={MessageCircle} title="Most-used words" subtitle={focus ? `What ${focus} says most` : 'Across everyone'} />
+      <CardHeader icon={MessageCircle}
+        title={pro ? 'Frequent terms' : 'Most-used words'}
+        subtitle={focus ? `What ${focus} says most` : pro ? 'Common topics across the conversation' : 'Across everyone'} />
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
         {list.map((w, i) => (
           <span key={w.value} title={`${comma(w.count)}×`}

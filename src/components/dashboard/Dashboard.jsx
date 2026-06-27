@@ -3,6 +3,8 @@ import { useApp } from '../../context/AppContext.jsx'
 import { Overview } from './Overview.jsx'
 import { Timeline } from './Timeline.jsx'
 import { Heatmap } from './Heatmap.jsx'
+import { WeekdayActivity } from './WeekdayActivity.jsx'
+import { ResponseTrend } from './ResponseTrend.jsx'
 import { People } from './People.jsx'
 import { Graph } from './Graph.jsx'
 import { Sentiment } from './Sentiment.jsx'
@@ -41,41 +43,45 @@ export function Dashboard() {
       <Overview />
 
       {friends ? (
-        /* ---------------- FRIENDS: fun first, fully free, shareable -------- */
+        /* -------- FRIENDS: identity-first, narrative, fully free ---------- */
         <>
           <WrappedBanner onPlay={openWrapped} />
           <Awards />
-          <GraphSection />
           <People />
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <EmojiLeaderboard />
             <TopWords />
           </div>
+          {/* Mood is fun + shareable — ungated in Friends mode. */}
+          <Sentiment />
+          <GraphSection />
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
-            <Timeline />
             <Heatmap />
+            <WeekdayActivity />
           </div>
-          <Gate title="Sentiment trends" blurb="See the group's mood rise and fall over time.">
-            <Sentiment />
-          </Gate>
+          <Timeline />
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <Balance />
             <Highlights />
           </div>
         </>
       ) : (
-        /* ---------------- PRO: analytics first, monetised ----------------- */
+        /* -------- PRO: decision-first (response → SLA → trend → load) ----- */
         <>
           <Gate title="Professional report" blurb="SLA tracking, engagement trends and exports.">
             <ProReport />
           </Gate>
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+            <ResponseTrend />
             <Timeline />
-            <Gate title="Sentiment trends" blurb="Track conversation tone month over month.">
-              <Sentiment />
-            </Gate>
           </div>
-          <Heatmap />
+          <Gate title="Sentiment trends" blurb="Track conversation tone month over month.">
+            <Sentiment />
+          </Gate>
+          <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+            <Heatmap />
+            <WeekdayActivity />
+          </div>
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <Gate title="Response times" blurb="Median reply speed for every participant.">
               <ResponseTimes />
@@ -89,11 +95,7 @@ export function Dashboard() {
             <Highlights />
           </div>
           <GraphSection />
-          <People />
-          <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
-            <TopWords />
-            <EmojiLeaderboard />
-          </div>
+          <TopWords />
         </>
       )}
     </main>

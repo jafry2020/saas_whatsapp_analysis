@@ -9,10 +9,10 @@ export function ProReport() {
   const { analytics, isPro, openUpgrade } = useApp()
   const { sla } = analytics
 
-  // Month-over-month engagement (last two months with data).
+  // Month-over-month engagement (shared with the Overview tile).
   const ms = analytics.monthlySeries
-  const last = ms[ms.length - 1], prev = ms[ms.length - 2]
-  const mom = prev && prev.count ? ((last.count - prev.count) / prev.count) * 100 : 0
+  const last = ms[ms.length - 1]
+  const mom = analytics.totals.engagementMoM
 
   const exportCSV = () => {
     if (!isPro) return openUpgrade()
