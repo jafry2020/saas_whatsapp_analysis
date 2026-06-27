@@ -1,0 +1,336 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   SUBTEXT DESIGN SYSTEM
+   Theme tokens are RGB triplets (space-separated) so Tailwind's
+   `rgb(var(--x) / <alpha-value>)` can apply opacity. Four combos:
+   friends/pro  ×  light/dark — each a *distinct* identity, not a swap.
+   ============================================================ */
+
+/* ---- PRO · LIGHT (default) — near-monochrome zinc + cobalt accent ---- */
+:root,
+html[data-mode='pro'] {
+  --canvas: 251 251 252;
+  --surface: 255 255 255;
+  --surface-2: 244 245 247;
+  --elevated: 255 255 255;
+  --line: 230 232 236;
+  --hairline: 214 217 224;
+  --ink: 21 23 26;
+  --muted: 90 97 107;
+  --faint: 154 160 170;
+  --accent: 45 82 232;
+  --accent-2: 100 116 139;
+  --accent-3: 148 163 184;
+  --accent-text: 40 74 220;
+  --on-accent: 255 255 255;
+  --positive: 31 157 99;
+  --negative: 210 63 54;
+  --warning: 180 95 6;
+  --radius: 0.65rem;
+  --radius-btn: 0.55rem;
+  --grain: 0.012;
+  /* Type divergence: Pro stays tighter/lighter (restraint), Friends goes
+     bigger/bolder (expressive). Same two font families, different ramp. */
+  --weight-display: 600;
+  --tracking-display: -0.02em;
+
+  /* Professional mode is deliberately FLAT — elevation comes from a real
+     1px border, not from soft puffy shadow. Trust over tactility. Clay
+     stays a Friends-mode-only device (see below); Pro reuses the same
+     var names so every shared component (.card/.chip/.input/Button)
+     renders correctly without per-component overrides. */
+  --clay: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --clay-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --clay-lg: 0 24px 48px -24px rgba(15, 23, 42, 0.18), 0 4px 12px -4px rgba(15, 23, 42, 0.08);
+  --clay-inset: inset 0 0 0 1px rgb(var(--hairline));
+  --clay-accent: 0 1px 2px rgb(var(--accent) / 0.3), 0 6px 16px -8px rgb(var(--accent) / 0.45);
+
+  /* Glassmorphism — only for elements floating over other content
+     (navbar, overlay controls, hero accents). Grounded surfaces are flat. */
+  --glass-tint: rgb(var(--surface) / 0.55);
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-shadow: 0 10px 36px -10px rgb(0 0 0 / 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+html[data-mode='pro'].dark {
+  --canvas: 10 11 13;
+  --surface: 19 20 23;
+  --surface-2: 26 28 32;
+  --elevated: 31 33 38;
+  --line: 38 40 46;
+  --hairline: 52 55 62;
+  --ink: 242 243 245;
+  --muted: 155 161 172;
+  --faint: 110 116 126;
+  --accent: 77 124 255;
+  --accent-2: 148 163 184;
+  --accent-3: 100 116 139;
+  --accent-text: 140 168 255;
+  --on-accent: 255 255 255;
+  --positive: 63 185 121;
+  --negative: 229 84 75;
+  --warning: 245 158 11;
+  --grain: 0.03;
+  --clay: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --clay-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --clay-lg: 0 24px 48px -24px rgba(0, 0, 0, 0.65), 0 4px 14px -4px rgba(0, 0, 0, 0.4);
+  --clay-inset: inset 0 0 0 1px rgb(var(--hairline));
+  --clay-accent: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px -8px rgb(var(--accent) / 0.5);
+  --glass-tint: rgb(var(--surface) / 0.45);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 10px 36px -10px rgb(0 0 0 / 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ---- FRIENDS · LIGHT — warm paper, lime energy, coral + cyan pops ---- */
+html[data-mode='friends'] {
+  --canvas: 244 242 235;
+  --surface: 255 255 255;
+  --surface-2: 247 246 240;
+  --elevated: 255 255 255;
+  --line: 230 228 219;
+  --hairline: 214 211 200;
+  --ink: 20 18 16;
+  --muted: 96 92 86;
+  --faint: 150 145 137;
+  --accent: 132 204 22;
+  --accent-2: 255 77 125;
+  --accent-3: 14 165 200;
+  --accent-text: 77 124 15;
+  --on-accent: 20 18 16;
+  --positive: 22 163 74;
+  --negative: 239 68 68;
+  --warning: 234 88 12;
+  --radius: 1.7rem;
+  --radius-btn: 1.15rem;
+  --grain: 0.03;
+  --weight-display: 700;
+  --tracking-display: -0.01em;
+  --clay-hi: rgba(255, 255, 255, 0.95);
+  --clay-lo: rgba(60, 40, 20, 0.12);
+  --clay-drop: rgba(60, 45, 25, 0.18);
+  /* Friends mode keeps the puffy claymorphism — declared explicitly here
+     (not shared with Pro) since Pro's surfaces are intentionally flat. */
+  --clay:
+    0 18px 34px -14px var(--clay-drop), 0 6px 14px -8px var(--clay-drop),
+    inset 0 2px 2px var(--clay-hi), inset 0 -8px 13px -7px var(--clay-lo);
+  --clay-lg:
+    0 30px 56px -18px var(--clay-drop), 0 12px 22px -12px var(--clay-drop),
+    inset 0 3px 3px var(--clay-hi), inset 0 -11px 18px -9px var(--clay-lo);
+  --clay-sm:
+    0 8px 16px -9px var(--clay-drop),
+    inset 0 1px 1px var(--clay-hi), inset 0 -4px 8px -5px var(--clay-lo);
+  --clay-inset:
+    inset 0 5px 9px -3px var(--clay-lo), inset 0 -2px 3px var(--clay-hi);
+  --clay-accent:
+    0 16px 28px -12px rgb(var(--accent) / 0.55),
+    inset 0 2px 2px rgba(255, 255, 255, 0.45), inset 0 -8px 13px -6px rgb(0 0 0 / 0.22);
+  --glass-tint: rgb(var(--surface) / 0.5);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-shadow: 0 10px 36px -10px rgba(60, 45, 25, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+html[data-mode='friends'].dark {
+  --canvas: 11 11 14;
+  --surface: 20 20 25;
+  --surface-2: 28 28 35;
+  --elevated: 33 33 41;
+  --line: 45 45 55;
+  --hairline: 62 62 76;
+  --ink: 246 246 249;
+  --muted: 170 168 180;
+  --faint: 112 110 126;
+  --accent: 198 246 60;
+  --accent-2: 255 92 138;
+  --accent-3: 56 225 255;
+  --accent-text: 198 246 60;
+  --on-accent: 16 18 10;
+  --positive: 74 222 128;
+  --negative: 248 113 113;
+  --warning: 251 191 36;
+  --grain: 0.06;
+  --clay-hi: rgba(255, 255, 255, 0.08);
+  --clay-lo: rgba(0, 0, 0, 0.55);
+  --clay-drop: rgba(0, 0, 0, 0.6);
+  --clay:
+    0 18px 34px -14px var(--clay-drop), 0 6px 14px -8px var(--clay-drop),
+    inset 0 2px 2px var(--clay-hi), inset 0 -8px 13px -7px var(--clay-lo);
+  --clay-lg:
+    0 30px 56px -18px var(--clay-drop), 0 12px 22px -12px var(--clay-drop),
+    inset 0 3px 3px var(--clay-hi), inset 0 -11px 18px -9px var(--clay-lo);
+  --clay-sm:
+    0 8px 16px -9px var(--clay-drop),
+    inset 0 1px 1px var(--clay-hi), inset 0 -4px 8px -5px var(--clay-lo);
+  --clay-inset:
+    inset 0 5px 9px -3px var(--clay-lo), inset 0 -2px 3px var(--clay-hi);
+  --clay-accent:
+    0 16px 28px -12px rgb(var(--accent) / 0.55),
+    inset 0 2px 2px rgba(255, 255, 255, 0.18), inset 0 -8px 13px -6px rgb(0 0 0 / 0.35);
+  --glass-tint: rgb(var(--surface) / 0.42);
+  --glass-border: rgba(255, 255, 255, 0.13);
+  --glass-shadow: 0 10px 36px -10px rgb(0 0 0 / 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  * {
+    border-color: rgb(var(--line));
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scrollbar-color: rgb(var(--hairline)) transparent;
+  }
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+    font-feature-settings: 'ss01', 'cv01', 'cv03';
+    transition: background-color 0.4s ease, color 0.3s ease;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Clash Display', ui-sans-serif, system-ui, sans-serif;
+    font-weight: var(--weight-display);
+    letter-spacing: var(--tracking-display);
+  }
+  /* Anything using the display face (stat numbers, award titles, etc.) gets
+     the same mode-driven weight by default — explicit font-* utilities on
+     a given element still win, this only fills the unstyled gap. */
+  .font-display {
+    font-weight: var(--weight-display);
+    letter-spacing: var(--tracking-display);
+  }
+  ::selection {
+    background: rgb(var(--accent) / 0.28);
+  }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--hairline));
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgb(var(--faint)); }
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* Tabular figures for any numeric-heavy element */
+  .tnum { font-variant-numeric: tabular-nums; }
+}
+
+@layer components {
+  /* Surfaces ------------------------------------------------- */
+  .card {
+    @apply bg-surface rounded-[var(--radius)];
+    box-shadow: var(--clay);
+    border: 1px solid rgb(var(--hairline) / 0.6);
+  }
+  .panel {
+    @apply bg-surface/80 rounded-[var(--radius)] backdrop-blur-xl;
+    box-shadow: var(--clay);
+    border: 1px solid rgb(var(--hairline) / 0.6);
+  }
+  .hair {
+    box-shadow: inset 0 0 0 1px rgb(var(--hairline) / 0.6);
+  }
+  /* Glass — for elements floating over other content (sticky bars, overlay
+     controls, hero accents). Grounded surfaces use .clay/.card instead. */
+  .glass {
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    background: var(--glass-tint);
+  }
+  .glass-pop {
+    @apply rounded-2xl;
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    background: var(--glass-tint);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* Chips / pills ------------------------------------------- */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-surface
+           px-3 py-1.5 text-xs font-medium text-muted;
+    box-shadow: var(--clay-sm);
+  }
+  .chip-accent {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold;
+    background: rgb(var(--accent) / 0.16);
+    color: rgb(var(--accent-text));
+    box-shadow: var(--clay-sm);
+  }
+
+  /* Eyebrow label ------------------------------------------- */
+  .eyebrow {
+    @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-faint;
+  }
+
+  /* Inputs --------------------------------------------------- */
+  .input {
+    @apply w-full bg-surface-2 rounded-xl px-3.5 py-2.5 text-sm text-ink
+           placeholder:text-faint outline-none transition;
+    box-shadow: var(--clay-inset);
+    border: 0;
+  }
+
+  /* Claymorphism helpers */
+  .clay { box-shadow: var(--clay); }
+  .clay-sm { box-shadow: var(--clay-sm); }
+  .clay-lg { box-shadow: var(--clay-lg); }
+  .clay-inset { box-shadow: var(--clay-inset); }
+  .clay-well {
+    @apply bg-surface-2 rounded-2xl;
+    box-shadow: var(--clay-inset);
+    border: 0;
+  }
+
+  /* Texture / backgrounds ----------------------------------- */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgb(var(--hairline) / 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(var(--hairline) / 0.5) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .bg-dots {
+    background-image: radial-gradient(rgb(var(--hairline) / 0.7) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  /* Subtle film grain — kills the flat "AI gradient" look. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: var(--grain);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  /* Skeleton shimmer ---------------------------------------- */
+  .skeleton {
+    @apply relative overflow-hidden bg-surface-2 rounded-md;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 animate-shimmer;
+    background: linear-gradient(90deg, transparent, rgb(var(--hairline) / 0.5), transparent);
+    transform: translateX(-100%);
+  }
+
+  /* Gradient ink text for headlines ------------------------- */
+  .text-gradient {
+    background: linear-gradient(120deg, rgb(var(--ink)), rgb(var(--ink) / 0.55));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Reduced-motion respect */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

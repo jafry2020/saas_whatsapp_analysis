@@ -1,0 +1,96 @@
+WHATSAPP CHAT INTELLIGENCE — COMMERCIAL PRODUCT BUILD
+(Prompt for Claude Opus 4.8)
+
+============================================================
+CONTEXT
+============================================================
+I'm building a sellable SaaS product, not a demo. It ingests a WhatsApp-exported
+.txt chat file and turns it into a beautiful, interactive analytics experience.
+This needs to look and feel like a real funded startup product — the kind people
+pay for. Avoid the generic "AI-generated" look (no default purple gradients, no
+centered card on a gray background, no Inter-everywhere-with-emoji-headers). I
+want a distinctive, opinionated visual identity with genuine craft.
+
+============================================================
+PRODUCT VISION
+============================================================
+Two products in one, toggled by mode:
+- Friends mode — fun, shareable, viral-friendly ("Spotify Wrapped for your group chat").
+- Professional mode — clean analytics for teams, sales, support, and community
+  managers analyzing client/team conversations.
+
+The shareability of Friends mode is the growth engine; Professional mode is the
+monetization path.
+
+============================================================
+DESIGN DIRECTION (critical — spend real effort here)
+============================================================
+- Establish a strong, intentional visual identity: a custom color system, a real
+  typographic hierarchy (pair a characterful display face with a clean workhorse
+  text face — not Inter for everything), generous spacing, and a consistent
+  motion language.
+- Each mode gets its own distinct theme — not just a color swap. Friends mode:
+  bold, energetic, playful, high-contrast, expressive. Professional mode: refined,
+  restrained, data-dense, trustworthy, near-monochrome with one sharp accent.
+- Aim for the polish of products like Linear, Vercel, Stripe, or Pitch: precise
+  alignment, real depth via subtle shadows/borders not heavy drop-shadows,
+  micro-interactions, smooth transitions, tasteful empty/loading/error states.
+- Dark mode and light mode, both first-class.
+- Hero "Wrapped"-style story view for Friends mode: full-screen, swipeable,
+  animated stat cards designed to be screenshotted and shared (this drives organic
+  acquisition). Add a "Share card" export to PNG.
+- The interactive relationship graph should feel like a centerpiece, not a widget —
+  fluid physics, elegant hover/focus states, smooth filtering.
+
+============================================================
+CORE FUNCTIONALITY
+============================================================
+PARSING (client-side, privacy-first — data never leaves the browser; say so prominently):
+- Robustly handle iOS and Android exports, 12h/24h time, multiple date formats,
+  multi-line messages, system messages, deleted/edited messages, media-omitted
+  markers, emoji/Unicode.
+- Report parse stats; fail gracefully on malformed lines.
+
+INSIGHTS:
+- Per-person: volume, word count, avg length, media, emoji usage, top words, active hours.
+- Temporal: messages over time, day x hour activity heatmap, streaks, longest
+  silences, peak times.
+- Dynamics: response times, who starts/ends conversations, reply chains,
+  participation balance.
+- Sentiment: lightweight lexicon-based scoring per person and over time (no external API).
+- Friends mode layers fun awards/superlatives, emoji leaderboards, laughter analysis on top.
+- Professional mode surfaces response SLAs, engagement trends, balance metrics, and
+  an exportable report.
+
+INTERACTIVE GRAPH:
+- Force-directed network (D3 or react-force-graph): nodes = people sized by volume,
+  edges = interaction strength. Hover-highlight, click-to-filter the whole dashboard,
+  drag, zoom/pan, legend.
+
+============================================================
+PRODUCT / COMMERCIAL LAYER
+============================================================
+- A real landing page (hero, value prop, social proof placeholders, mode preview,
+  clear CTA) — not just a bare uploader.
+- A freemium gate: free tier shows core stats; a "Pro" upsell (mocked, no real
+  payment) unlocks advanced analytics, full report export, and unlimited
+  participants. Design the upgrade moment to feel natural, not nagging.
+- "How to export your WhatsApp chat" onboarding helper.
+- Branding: give the product a name, logo mark, and consistent identity throughout.
+
+============================================================
+TECHNICAL SPECS
+============================================================
+- React + Tailwind. Recharts for standard charts, D3/react-force-graph for the network.
+- No backend, no localStorage — all parsed data lives in React state in memory.
+- Handle 50k+ message chats smoothly: incremental parsing, loading states, memoized
+  computations, virtualized lists where needed.
+- Fully responsive; flawless on desktop, strong on mobile (Friends-mode story view especially).
+- Production-quality code: componentized, commented parser, no dead code.
+
+============================================================
+DELIVERABLE
+============================================================
+A self-contained, runnable application with built-in synthetic sample data so I can
+preview the full experience before uploading my own file. Treat this as a v1 I could
+put in front of real customers.
