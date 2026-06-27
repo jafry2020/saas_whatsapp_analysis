@@ -10,12 +10,12 @@ const COPY = {
   friends: {
     eyebrow: 'Spotify Wrapped — for your group chat',
     title: ['Your group chat,', 'finally explained.'],
-    sub: 'See who really carries the conversation, your funniest moments, late-night philosophers and the superlatives nobody asked for. Made to be screenshotted.',
+    sub: 'Who talks the most. Who ghosts. What you all actually sound like.',
   },
   pro: {
     eyebrow: 'Conversation analytics, privacy-first',
     title: ['Turn conversations', 'into clarity.'],
-    sub: 'Understand the chats that run your business — response-time SLAs, engagement trends, sentiment and participation balance. Exportable in a click.',
+    sub: 'Drop a chat export, get the numbers your team actually needs.',
   },
 }
 
@@ -23,7 +23,7 @@ export function Hero() {
   const { mode } = useApp()
   const c = COPY[mode]
   return (
-    <section className="relative overflow-hidden">
+    <section id="hero" className="relative overflow-hidden">
       <div className="absolute inset-0 bg-grid [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)] opacity-60" />
       <div className="absolute -top-40 -right-32 h-[30rem] w-[30rem] rounded-full blur-3xl opacity-20"
         style={{ background: 'radial-gradient(circle, rgb(var(--accent)), transparent 60%)' }} />

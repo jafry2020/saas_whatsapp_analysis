@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import {
   forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide, forceX, forceY,
 } from 'd3-force'
-import { Maximize2, Hand } from 'lucide-react'
+import { Maximize2, Hand, Plus, Minus } from 'lucide-react'
 import { useApp } from '../../context/AppContext.jsx'
 import { nameColor, initials } from '../../lib/format.js'
 
@@ -237,6 +237,10 @@ export function Graph() {
     canvasRef.current.style.cursor = 'grab'
   }
   function onWheel(e) {
+    // Plain scroll passes through to the page — only zoom when a modifier
+    // is held (matches Maps/Figma), so scrolling past the graph never
+    // accidentally yanks it in/out.
+    if (!(e.ctrlKey || e.metaKey)) return
     e.preventDefault()
     const st = stateRef.current
     const p = toWorld(e)
@@ -252,6 +256,17 @@ export function Graph() {
     const st = stateRef.current
     st.transform = { k: 1, x: st.size.w / 2, y: st.size.h / 2 }
     simRef.current?.alpha(0.6).restart()
+    draw()
+  }
+  function zoomBy(factor) {
+    const st = stateRef.current
+    const cx = st.size.w / 2, cy = st.size.h / 2
+    const wx = (cx - st.transform.x) / st.transform.k
+    const wy = (cy - st.transform.y) / st.transform.k
+    const k2 = Math.max(0.3, Math.min(3.5, st.transform.k * factor))
+    st.transform.x = cx - wx * k2
+    st.transform.y = cy - wy * k2
+    st.transform.k = k2
     draw()
   }
 
@@ -276,12 +291,22 @@ export function Graph() {
         )}
 
         <div className="absolute top-3 left-3 glass-pop rounded-full px-2.5 py-1 text-[11px] text-muted inline-flex items-center gap-1.5">
-          <Hand size={12} /> drag · scroll to zoom · click to filter
+          <Hand size={12} /> drag · ctrl/⌘+scroll to zoom · click to filter
         </div>
-        <button onClick={reset}
-          className="absolute top-3 right-3 grid place-items-center h-8 w-8 glass-pop text-muted hover:text-ink transition">
-          <Maximize2 size={14} />
-        </button>
+        <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          <button onClick={() => zoomBy(1 / 1.3)}
+            className="grid place-items-center h-8 w-8 glass-pop text-muted hover:text-ink transition">
+            <Minus size={14} />
+          </button>
+          <button onClick={() => zoomBy(1.3)}
+            className="grid place-items-center h-8 w-8 glass-pop text-muted hover:text-ink transition">
+            <Plus size={14} />
+          </button>
+          <button onClick={reset}
+            className="grid place-items-center h-8 w-8 glass-pop text-muted hover:text-ink transition">
+            <Maximize2 size={14} />
+          </button>
+        </div>
         {focus && (
           <div className="absolute bottom-3 left-3 glass-pop rounded-full px-3 py-1.5 text-xs font-semibold"
             style={{ color: 'rgb(var(--accent-text))' }}>
