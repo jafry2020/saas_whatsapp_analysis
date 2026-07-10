@@ -11,7 +11,9 @@ import { Sentiment } from './Sentiment.jsx'
 import { ResponseTimes, Balance, ConversationFlow, Highlights } from './Dynamics.jsx'
 import { TopWords, EmojiLeaderboard } from './Extras.jsx'
 import { Awards } from '../friends/Awards.jsx'
+import { PersonalityCards } from '../friends/PersonalityCards.jsx'
 import { ProReport } from '../pro/ProReport.jsx'
+import { ClientSLA } from '../pro/ClientSLA.jsx'
 import { Locked } from '../common/Locked.jsx'
 import { Card, SectionTitle } from '../ui/Card.jsx'
 import { Button, Avatar } from '../ui/primitives.jsx'
@@ -47,6 +49,7 @@ export function Dashboard() {
         <>
           <WrappedBanner onPlay={openWrapped} />
           <Awards />
+          <PersonalityCards />
           <People />
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <EmojiLeaderboard />
@@ -71,6 +74,7 @@ export function Dashboard() {
           <Gate title="Professional report" blurb="SLA tracking, engagement trends and exports.">
             <ProReport />
           </Gate>
+          <ClientSLA />
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <ResponseTrend />
             <Timeline />

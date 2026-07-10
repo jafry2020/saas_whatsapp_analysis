@@ -19,6 +19,7 @@ export function AppProvider({ children }) {
   const [focus, setFocus] = useState(null) // participant name to filter by
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [wrappedOpen, setWrappedOpen] = useState(false)
+  const [roles, setRoles] = useState({}) // { [participantName]: 'team' | 'client' } — Pro-only, in-memory
 
   // Reflect mode/theme onto <html> so the CSS-variable design system cascades.
   useEffect(() => {
@@ -34,13 +35,22 @@ export function AppProvider({ children }) {
   const loadParsed = useCallback((p) => {
     setParsed(p)
     setFocus(null)
+    setRoles({})
     setStage('app')
   }, [])
 
   const reset = useCallback(() => {
     setParsed(null)
     setFocus(null)
+    setRoles({})
     setStage('landing')
+  }, [])
+
+  const setRole = useCallback((name, role) => {
+    setRoles((r) => {
+      if (role == null) { const n = { ...r }; delete n[name]; return n }
+      return { ...r, [name]: role }
+    })
   }, [])
 
   const value = {
@@ -56,6 +66,7 @@ export function AppProvider({ children }) {
     toggleFocus: (name) => setFocus((f) => (f === name ? null : name)),
     upgradeOpen, openUpgrade: () => setUpgradeOpen(true), closeUpgrade: () => setUpgradeOpen(false),
     wrappedOpen, openWrapped: () => setWrappedOpen(true), closeWrapped: () => setWrappedOpen(false),
+    roles, setRole, clearRoles: () => setRoles({}),
   }
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
