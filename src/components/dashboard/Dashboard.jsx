@@ -1,4 +1,4 @@
-import { Smartphone, FileCheck2, CalendarDays, X, Play, Sparkles } from 'lucide-react'
+import { Smartphone, FileCheck2, CalendarDays, X, Play, Sparkles, HelpCircle } from 'lucide-react'
 import { useApp } from '../../context/AppContext.jsx'
 import { Overview } from './Overview.jsx'
 import { Timeline } from './Timeline.jsx'
@@ -12,8 +12,11 @@ import { ResponseTimes, Balance, ConversationFlow, Highlights } from './Dynamics
 import { TopWords, EmojiLeaderboard } from './Extras.jsx'
 import { Awards } from '../friends/Awards.jsx'
 import { PersonalityCards } from '../friends/PersonalityCards.jsx'
+import { Milestones } from '../friends/Milestones.jsx'
+import { DuosAndBesties } from '../friends/DuosAndBesties.jsx'
 import { ProReport } from '../pro/ProReport.jsx'
 import { ClientSLA } from '../pro/ClientSLA.jsx'
+import { SlowestHours } from '../pro/SlowestHours.jsx'
 import { Locked } from '../common/Locked.jsx'
 import { Card, SectionTitle } from '../ui/Card.jsx'
 import { Button, Avatar } from '../ui/primitives.jsx'
@@ -22,13 +25,13 @@ import { fmtDate, comma } from '../../lib/format.js'
 /** Pulls every visualisation together. Layout & emphasis change with mode;
  *  advanced cards are gated for free users. */
 export function Dashboard() {
-  const { analytics, parsed, mode, focus, setFocus, isPro, openWrapped } = useApp()
+  const { analytics, viewParsed, mode, focus, setFocus, isPro, openWrapped } = useApp()
   const a = analytics
   const friends = mode === 'friends'
 
   return (
     <main className="mx-auto max-w-[1400px] px-4 md:px-6 py-6 md:py-10 space-y-10 md:space-y-14 grain">
-      <ParseSummary stats={parsed.stats} totals={a.totals} />
+      <ParseSummary stats={viewParsed.stats} totals={a.totals} />
 
       {focus && (
         <div className="flex items-center justify-between rounded-xl border border-accent/40 bg-accent/[0.05] px-4 py-2.5 -mb-4 animate-fade-up">
@@ -51,6 +54,7 @@ export function Dashboard() {
           <Awards />
           <PersonalityCards />
           <People />
+          <DuosAndBesties />
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <EmojiLeaderboard />
             <TopWords />
@@ -63,6 +67,7 @@ export function Dashboard() {
             <WeekdayActivity />
           </div>
           <Timeline />
+          <Milestones />
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <Balance />
             <Highlights />
@@ -86,6 +91,7 @@ export function Dashboard() {
             <Heatmap />
             <WeekdayActivity />
           </div>
+          <SlowestHours />
           <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
             <Gate title="Response times" blurb="Median reply speed for every participant.">
               <ResponseTimes />
@@ -124,6 +130,7 @@ function GraphSection() {
 }
 
 function WrappedBanner({ onPlay }) {
+  const { openQuiz } = useApp()
   return (
     <div className="relative overflow-hidden rounded-4xl border border-line bg-surface p-6 md:p-8 grain">
       <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-5">
@@ -132,9 +139,14 @@ function WrappedBanner({ onPlay }) {
           <h3 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-ink">Your chat, Wrapped.</h3>
           <p className="text-muted mt-1.5 max-w-md">A full-screen, swipeable story of your year in the group chat — built to be screenshotted.</p>
         </div>
-        <Button variant="primary" size="lg" onClick={onPlay} className="shrink-0">
-          <Play size={17} /> Play Wrapped
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" size="lg" onClick={openQuiz}>
+            <HelpCircle size={17} /> Quiz
+          </Button>
+          <Button variant="primary" size="lg" onClick={onPlay}>
+            <Play size={17} /> Play Wrapped
+          </Button>
+        </div>
       </div>
     </div>
   )

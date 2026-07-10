@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Users, Crown, Lock, Clock } from 'lucide-react'
 import { useApp } from '../../context/AppContext.jsx'
 import { computeAwards } from '../../lib/awards.js'
+import { normalizeWord } from '../../lib/stopwords.js'
 import { Card, CardHeader } from '../ui/Card.jsx'
 import { Avatar, Button } from '../ui/primitives.jsx'
 import { moodLabel } from '../../lib/sentiment.js'
@@ -55,13 +56,27 @@ export function People() {
 }
 
 function PersonRow({ p, rank, max, active, dimmed, friends, tag, onClick }) {
+  const { viewParsed, openEvidence } = useApp()
   const mood = moodLabel(p.sentiment)
+
+  const showWordEvidence = (e, word) => {
+    e.stopPropagation() // don't also trigger the row's focus toggle
+    const matches = viewParsed.messages.filter(
+      (m) => m.author === p.name && m.type === 'text'
+        && m.body.split(/\s+/).some((tok) => normalizeWord(tok) === word),
+    )
+    openEvidence(`${p.name} saying "${word}"`, matches)
+  }
   return (
-    <button
-      onClick={onClick}
+    // A div (not <button>) — the signature-word chips below are their own
+    // clickable evidence triggers, and nesting <button> inside <button> is
+    // invalid HTML that breaks click/focus semantics for the inner ones.
+    <div
+      role="button" tabIndex={0} onClick={onClick}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onClick()}
       className={cn(
         // box-shadow excluded — see Card.jsx comment.
-        'w-full text-left rounded-2xl px-3 py-3 md:px-4 transition-[background-color,opacity] duration-200',
+        'w-full text-left rounded-2xl px-3 py-3 md:px-4 transition-[background-color,opacity] duration-200 cursor-pointer',
         active ? 'bg-accent/[0.07] clay' : 'bg-surface-2 clay-inset hover:bg-surface',
         dimmed && 'opacity-55',
       )}
@@ -120,15 +135,26 @@ function PersonRow({ p, rank, max, active, dimmed, friends, tag, onClick }) {
         )}
       </div>
 
-      {/* top words on focus */}
-      {active && p.topWords.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5 animate-fade-up">
-          {p.topWords.slice(0, 10).map((w) => (
-            <span key={w.value} className="chip text-[11px] py-0.5">{w.value} <span className="text-faint tnum">{w.count}</span></span>
-          ))}
-        </div>
-      )}
-    </button>
+      {/* words that are "so them" on focus — over-represented vs the group,
+          not just frequent (frequent overlaps heavily across everyone).
+          Falls back to raw top words for low-volume people with no signal. */}
+      {active && (() => {
+        const words = p.signatureWords.length > 0 ? p.signatureWords : p.topWords
+        return words.length > 0 && (
+          <div className="mt-3 animate-fade-up">
+            {p.signatureWords.length > 0 && <div className="text-[10px] font-semibold uppercase tracking-wide text-faint mb-1.5">words that are so {p.name}</div>}
+            <div className="flex flex-wrap gap-1.5">
+              {words.slice(0, 10).map((w) => (
+                <button key={w.value} onClick={(e) => showWordEvidence(e, w.value)}
+                  className="chip text-[11px] py-0.5 hover:border-hairline hover:text-ink transition">
+                  {w.value} <span className="text-faint tnum">{w.count}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })()}
+    </div>
   )
 }
 

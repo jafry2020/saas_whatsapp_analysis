@@ -2,8 +2,10 @@ import { useApp } from './context/AppContext.jsx'
 import { Landing } from './components/landing/Landing.jsx'
 import { Navbar } from './components/common/Navbar.jsx'
 import { UpgradeModal } from './components/common/UpgradeModal.jsx'
+import { EvidenceModal } from './components/common/EvidenceModal.jsx'
 import { Dashboard } from './components/dashboard/Dashboard.jsx'
 import { Wrapped } from './components/friends/Wrapped.jsx'
+import { QuizModal } from './components/friends/QuizModal.jsx'
 
 export default function App() {
   const { stage, parsed, mode } = useApp()
@@ -22,7 +24,9 @@ export default function App() {
       <Navbar />
       <Dashboard />
       <UpgradeModal />
+      <EvidenceModal />
       {mode === 'friends' && <Wrapped />}
+      {mode === 'friends' && <QuizModal />}
     </div>
   )
 }

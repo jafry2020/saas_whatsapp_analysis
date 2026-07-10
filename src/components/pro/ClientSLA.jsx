@@ -13,9 +13,9 @@ import { duration, comma, fmtDate } from '../../lib/format.js'
  * Needs roles tagged first (see RoleTagger); shows a prompt until then.
  */
 export function ClientSLA() {
-  const { parsed, roles } = useApp()
+  const { viewParsed, roles, openEvidence } = useApp()
   const [taggerOpen, setTaggerOpen] = useState(false)
-  const sla = useMemo(() => computeClientSLA(parsed.messages, roles), [parsed, roles])
+  const sla = useMemo(() => computeClientSLA(viewParsed.messages, roles), [viewParsed, roles])
 
   if (!sla.ready) {
     return (
@@ -90,13 +90,19 @@ export function ClientSLA() {
           {sla.unanswered.length ? (
             <div className="space-y-2">
               {sla.unanswered.slice(0, 6).map((u, i) => (
-                <div key={i} className="rounded-lg bg-surface-2 px-3 py-2">
+                <button key={i} onClick={() => {
+                  const windowMs = 10 * 60 * 1000
+                  const matches = viewParsed.messages.filter(
+                    (m) => m.ts >= new Date(u.ts.getTime() - 60 * 1000) && m.ts <= new Date(u.ts.getTime() + windowMs),
+                  )
+                  openEvidence(`Unanswered — ${u.name}`, matches)
+                }} className="w-full text-left rounded-lg bg-surface-2 px-3 py-2 hover:bg-surface transition">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-xs font-semibold text-ink">{u.name}</span>
                     <span className="text-[11px] text-faint tnum shrink-0">{fmtDate(u.ts)}</span>
                   </div>
                   <p className="text-[13px] text-muted mt-0.5 truncate">{u.body || '(media)'}</p>
-                </div>
+                </button>
               ))}
               {sla.unanswered.length > 6 && (
                 <p className="text-xs text-faint text-center pt-1">+{sla.unanswered.length - 6} more</p>

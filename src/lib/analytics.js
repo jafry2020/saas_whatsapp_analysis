@@ -29,6 +29,7 @@ const blankPerson = (name) => ({
   starts: 0, ends: 0,
   longestMonologue: 0,
   firstTs: null, lastTs: null,
+  firstTextMsg: null, // {body, ts} — their first real message, for milestones
 })
 
 const topN = (map, n, { skipStop = false } = {}) =>
@@ -37,6 +38,25 @@ const topN = (map, n, { skipStop = false } = {}) =>
     .sort((a, b) => b[1] - a[1])
     .slice(0, n)
     .map(([value, count]) => ({ value, count }))
+
+/**
+ * "Words that are so you" — not raw frequency (which just surfaces filler
+ * everyone says), but words THIS person uses disproportionately more often
+ * than the group as a whole. ratio = (their rate) / (everyone's rate);
+ * capped rather than left as Infinity when nobody else ever said the word.
+ */
+function topSignatureWords(pFreq, pTotal, gFreq, gTotal, n = 8, minCount = 3) {
+  return [...pFreq.entries()]
+    .filter(([w, c]) => c >= minCount && !STOPWORDS.has(w) && w.length > 1 && !/^\d+$/.test(w))
+    .map(([w, c]) => {
+      const pRate = pTotal ? c / pTotal : 0
+      const gRate = gTotal ? (gFreq.get(w) || 0) / gTotal : 0
+      const ratio = gRate > 0 ? pRate / gRate : 999
+      return { value: w, count: c, ratio }
+    })
+    .sort((a, b) => b.ratio - a.ratio)
+    .slice(0, n)
+}
 
 const median = (arr) => {
   if (!arr.length) return 0
@@ -76,6 +96,23 @@ export function computeAnalytics(parsed) {
   const globalEmojis = new Map()
   const pairCounts = new Map() // "a|b" (sorted) → interactions, for the graph
   const sentSeries = new Map() // ym → {sum, tokens}
+  const directedResponses = new Map() // "responder→repliedTo" → reply gaps (s), for duos/besties
+  const respByHour = new Map() // hour-of-day (0-23) the wait STARTED → reply gaps (s)
+
+  // Funniest-message tracking: a short sliding window of recent text
+  // messages. When a later message matches LAUGH_RE, credit the nearest
+  // prior message from a DIFFERENT author still in the window — that's
+  // "the message that got a laugh." Window-bounded (not a map keyed by
+  // every message) so this stays cheap on 50k+ message chats.
+  const LAUGH_WINDOW_N = 6
+  const LAUGH_WINDOW_MS = 5 * 60 * 1000
+  const recentWindow = []
+  let funniest = null
+  const settleFunny = (cand) => {
+    if (cand.score > 0 && (!funniest || cand.score > funniest.score)) {
+      funniest = { author: cand.author, body: cand.body, ts: cand.ts, score: cand.score }
+    }
+  }
 
   let totalWords = 0, totalChars = 0, totalEmojis = 0, totalMedia = 0, totalLinks = 0, totalQuestions = 0
 
@@ -112,13 +149,26 @@ export function computeAnalytics(parsed) {
     if (m.type === 'text') {
       p.words += m.wordCount; p.chars += m.charCount
       totalWords += m.wordCount; totalChars += m.charCount
+      if (!p.firstTextMsg) p.firstTextMsg = { body: m.body, ts: m.ts }
       if (m.body.includes('?')) { p.questions++; totalQuestions++ }
 
       const links = m.body.match(LINK_RE)
       if (links) { p.links += links.length; totalLinks += links.length }
 
       const laughs = m.body.match(LAUGH_RE)
-      if (laughs) p.laughs += laughs.length
+      if (laughs) {
+        p.laughs += laughs.length
+        // Credit the nearest still-in-window message from a different
+        // author — that's the one that got the laugh.
+        for (let k = recentWindow.length - 1; k >= 0; k--) {
+          if (recentWindow[k].author !== m.author) { recentWindow[k].score += laughs.length; break }
+        }
+      }
+      recentWindow.push({ author: m.author, body: m.body, ts: m.ts, score: 0 })
+      while (
+        recentWindow.length > LAUGH_WINDOW_N ||
+        (recentWindow.length && d - recentWindow[0].ts > LAUGH_WINDOW_MS)
+      ) settleFunny(recentWindow.shift())
 
       // Emoji frequency
       const ems = m.body.match(EMOJI_RE)
@@ -167,6 +217,14 @@ export function computeAnalytics(parsed) {
           p.responseTimes.push(secs); allResponses.push(secs)
           const bucket = respByMonth.get(ym) || []
           bucket.push(secs); respByMonth.set(ym, bucket)
+          // Directed (who-replies-to-whom) and hour-of-day (when did the
+          // wait start) breakdowns, for duos/besties and Pro's slowest-hours.
+          const dKey = `${m.author}→${prev.author}`
+          const dBucket = directedResponses.get(dKey) || []
+          dBucket.push(secs); directedResponses.set(dKey, dBucket)
+          const startHour = prev.ts.getHours()
+          const hBucket = respByHour.get(startHour) || []
+          hBucket.push(secs); respByHour.set(startHour, hBucket)
         }
         runAuthor = m.author; runLen = 1
       } else {
@@ -181,6 +239,44 @@ export function computeAnalytics(parsed) {
   }
   // Final session's last author ended it.
   if (msgs.length) ensure(msgs[msgs.length - 1].author).ends++
+  // Flush whatever's still in the laugh-tracking window.
+  for (const cand of recentWindow) settleFunny(cand)
+
+  // ---- Milestones — the Nth message, whichever thresholds this chat
+  // actually crossed, plus who sent it. -------------------------------------
+  const MILESTONE_THRESHOLDS = [100, 500, 1000, 2500, 5000, 10000, 25000, 50000]
+  const milestones = MILESTONE_THRESHOLDS.filter((t) => msgs.length >= t).map((t) => {
+    const m = msgs[t - 1]
+    return { count: t, author: m.author, ts: m.ts, body: m.type === 'text' ? m.body : null }
+  })
+
+  // ---- Duos & besties — per unordered pair, both directions' median
+  // response time, so a lopsided pair ("A replies in 2m, B takes 3h") shows
+  // up as clearly as a fast, balanced one. ----------------------------------
+  const pairKeys = new Set(
+    [...directedResponses.keys()].map((k) => {
+      const [x, y] = k.split('→')
+      return x < y ? `${x}|${y}` : `${y}|${x}`
+    }),
+  )
+  const pairResponses = [...pairKeys].map((key) => {
+    const [a, b] = key.split('|')
+    const aToB = directedResponses.get(`${a}→${b}`) || []
+    const bToA = directedResponses.get(`${b}→${a}`) || []
+    return {
+      a, b,
+      aToBMedian: median(aToB), bToAMedian: median(bToA),
+      aToBCount: aToB.length, bToACount: bToA.length,
+      interactions: pairCounts.get(key) || 0,
+    }
+  }).sort((x, y) => y.interactions - x.interactions)
+
+  // ---- Hourly response trend (Pro) — "do replies get slower in the
+  // evening?" bucketed by the hour the wait started, not the hour it ended.
+  const hourlyResponseSeries = Array.from({ length: 24 }, (_, h) => {
+    const bucket = respByHour.get(h) || []
+    return { hour: h, median: median(bucket), count: bucket.length }
+  })
 
   // ---- Build per-person public objects -------------------------------------
   const total = msgs.length || 1
@@ -205,6 +301,7 @@ export function computeAnalytics(parsed) {
     monthly: p.monthly,
     peakHour: p.hours.indexOf(Math.max(...p.hours)),
     topWords: topN(p.wordFreq, 12, { skipStop: true }),
+    signatureWords: topSignatureWords(p.wordFreq, p.words, globalWords, totalWords),
     topEmojis: topN(p.emojiFreq, 8),
     sentiment: p.sentTokens ? p.sentSum / p.sentTokens : 0,
     medianResponseSec: median(p.responseTimes),
@@ -215,6 +312,7 @@ export function computeAnalytics(parsed) {
     longestMonologue: p.longestMonologue,
     firstTs: p.firstTs,
     lastTs: p.lastTs,
+    firstTextMsg: p.firstTextMsg,
   })).sort((a, b) => b.messages - a.messages)
 
   // ---- Timelines -----------------------------------------------------------
@@ -309,6 +407,7 @@ export function computeAnalytics(parsed) {
     dailySeries,
     sentimentSeries,
     responseSeries,
+    hourlyResponseSeries,
     streak: { longest: longestStreak, current: currentStreak },
     longestSilences,
     graph: { nodes, links },
@@ -317,6 +416,9 @@ export function computeAnalytics(parsed) {
     sla,
     topWords: topN(globalWords, 40, { skipStop: true }),
     topEmojis: topN(globalEmojis, 20),
+    milestones,
+    pairResponses,
+    funniestMessage: funniest,
   }
 }
 

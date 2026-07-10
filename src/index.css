@@ -334,3 +334,32 @@ html[data-mode='friends'].dark {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ============================================================
+   PRINT — the "Export PDF" path is the browser's native print
+   dialog (window.print()). Force a clean light/flat look here
+   regardless of which theme/mode is on screen: dark surfaces and
+   puffy clay shadows waste ink and read badly on paper. Accent
+   hue is kept per-mode for brand identity.
+   ============================================================ */
+@media print {
+  html.dark[data-mode='pro'] {
+    --canvas: 251 251 252; --surface: 255 255 255; --surface-2: 244 245 247;
+    --line: 230 232 236; --hairline: 214 217 224;
+    --ink: 21 23 26; --muted: 90 97 107; --faint: 154 160 170;
+  }
+  html.dark[data-mode='friends'] {
+    --canvas: 244 242 235; --surface: 255 255 255; --surface-2: 247 246 240;
+    --line: 230 228 219; --hairline: 214 211 200;
+    --ink: 20 18 16; --muted: 96 92 86; --faint: 150 145 137;
+  }
+  :root, html {
+    --clay: none; --clay-sm: none; --clay-lg: 0 1px 3px rgba(0, 0, 0, 0.12);
+    --clay-accent: none;
+    --clay-inset: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+    --glass-tint: transparent; --glass-border: transparent; --glass-shadow: none;
+  }
+  body { background: #fff !important; }
+  .card, .panel { border: 1px solid rgba(0, 0, 0, 0.15) !important; break-inside: avoid; }
+  .grain::after { display: none; }
+}

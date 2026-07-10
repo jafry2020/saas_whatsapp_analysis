@@ -35,6 +35,22 @@ const LEX = {
   // strong negative
   furious: -4, devastated: -5, miserable: -4, hopeless: -4, depressed: -4, suicidal: -5,
   disgusting: -4, pathetic: -3, betrayed: -4, heartbroken: -4,
+
+  // Roman-Urdu / Hindi (Hinglish) — a big share of real-world WhatsApp
+  // chats mix English with transliterated Urdu/Hindi. Without these, mixed-
+  // language messages score as near-neutral regardless of actual tone.
+  // positive
+  acha: 2, accha: 2, achha: 2, badiya: 3, badhiya: 3, mast: 3, zabardast: 4,
+  shandar: 4, shaandar: 4, behtareen: 4, umda: 3, kamal: 3, jhakaas: 3,
+  khush: 3, khushi: 3, khoosh: 3, pyaar: 3, pyar: 3, pasand: 1, shukriya: 2,
+  shukria: 2, mubarak: 3, mubarik: 3, waah: 2, wah: 2, mazaa: 2, maza: 2,
+  mazedaar: 2, mazedar: 2, zindabad: 3, sahi: 1, thik: 1, theek: 1,
+  // negative
+  bura: -2, buri: -2, ganda: -2, gandi: -2, udaas: -3, udas: -3, pareshan: -2,
+  gussa: -3, tang: -2, dukh: -3, dukhi: -3, mushkil: -1, museebat: -3,
+  nuqsan: -2, haar: -2, fikar: -2, thaka: -1, thaki: -1, boriyat: -2,
+  ghalat: -2, bakwas: -3, faltu: -2, sharam: -2, afsos: -2, takleef: -2,
+  royaa: -2, roya: -2, rulaya: -2,
 }
 
 // Emoji → valence (covers the workhorses of group chats).
@@ -50,10 +66,12 @@ const EMOJI_LEX = {
 }
 
 const NEGATORS = new Set(['not', 'no', 'never', 'cant', 'cannot', 'wont', 'dont', "don't",
-  'isnt', 'arent', 'aint', 'neither', 'nor', 'without', 'hardly'])
+  'isnt', 'arent', 'aint', 'neither', 'nor', 'without', 'hardly',
+  'nahi', 'nahin', 'nai']) // Roman-Urdu/Hindi "no/not"
 const INTENSIFIERS = { very: 1.5, really: 1.5, so: 1.4, super: 1.6, extremely: 1.8,
   totally: 1.4, absolutely: 1.7, incredibly: 1.7, freaking: 1.6, damn: 1.4, 'kinda': 0.6,
-  slightly: 0.5, somewhat: 0.6 }
+  slightly: 0.5, somewhat: 0.6,
+  bohot: 1.6, bahut: 1.6, bohut: 1.6, bilkul: 1.7, ekdum: 1.5 } // Roman-Urdu/Hindi intensifiers
 
 const WORD_SPLIT = /[^\p{L}']+/u
 
